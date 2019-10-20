@@ -15,8 +15,12 @@
 void printToken( TokenType token, const char* tokenString )
 { switch (token)
   { case IF:
-    case THEN:
     case ELSE:
+    case WHILE:
+    case RETURN:
+    case INT:
+    case VOID:
+    case THEN:
     case END:
     case REPEAT:
     case UNTIL:
