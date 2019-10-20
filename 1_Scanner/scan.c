@@ -56,9 +56,9 @@ static struct
     { char* str;
       TokenType tok;
     } reservedWords[MAXRESERVED]
-    = {{"if",IF},{"else",ELSE},{"while",WHILE},{"return",RETURN},{"int",INT},{"void",VOID},
+   = {{"if",IF},{"else",ELSE},{"while",WHILE},{"return",RETURN},{"int",INT},{"void",VOID},
        /* discarded */ {"then",THEN},{"end",END},{"repeat",REPEAT},{"until",UNTIL},{"read",READ},{"write",WRITE}
-      };
+     };
 
 /* lookup an identifier to see if it is a reserved word */
 /* uses linear search */
@@ -73,7 +73,7 @@ static TokenType reservedLookup (char * s)
 /****************************************/
 /* the primary function of the scanner  */
 /****************************************/
-/* function getToken returns the 
+/* function getToken returns the
  * next token in source file
  */
 TokenType getToken(void)
@@ -89,16 +89,31 @@ TokenType getToken(void)
    { int c = getNextChar();
      save = TRUE;
      switch (state)
-     { case START:
+     { case INCOMMENT:
+       case START:
          if (isdigit(c))
            state = INNUM;
          else if (isalpha(c))
            state = INID;
+         else if (c == '=')
+           state = INEQ;
+         else if (c == '!')
+           state = INNE;
+         else if (c == '<')
+           state = INLT;
+         else if (c == '>')
+           state = INGT;
+         else if (c == '/') {
+           save = FALSE;
+           state = INOVER;
+         }
          else if ((c == ' ') || (c == '\t') || (c == '\n'))
            save = FALSE;
          else if (c == '{')
          { save = FALSE;
-           state = INCOMMENT;
+           //state = INCOMMENT;
+           state = DONE;
+           currentToken = LCURLY;
          }
          else
          { state = DONE;
@@ -134,7 +149,7 @@ TokenType getToken(void)
              case '}':
                currentToken = RCURLY;
                break;
-             case '[':
+             case'[':
                currentToken = LBRACE;
                break;
              case ']':
@@ -143,19 +158,91 @@ TokenType getToken(void)
              case ';':
                currentToken = SEMI;
                break;
+             case ',':
+               currentToken = COMMA;
+               break;
              default:
                currentToken = ERROR;
                break;
            }
          }
+         //break;
+       //case INCOMMENT:
+         if (state == INCOMMENT) {
+            save = FALSE;
+            if (c == EOF)
+            { state = DONE;
+            currentToken = ENDFILE;
+            }
+            else if (c == '}') state = START;
+         }
          break;
-       case INCOMMENT:
+       case INEQ:
+         state = DONE;
+         if (c == '=')
+           currentToken = EQ;
+         else
+         { /* backup in the input */
+           ungetNextChar();
+           save = FALSE;
+           currentToken = ASSIGN;
+         }
+         break;
+       case INNE:
+         state = DONE;
+         if (c == '=')
+             currentToken = NE;
+         else
+         { /* backup in the input */
+           ungetNextChar();
+           save = FALSE;
+           currentToken = ASSIGN;
+         }
+         break;
+       case INLT:
+         state = DONE;
+         if (c == '=')
+             currentToken = LE;
+         else
+         { /* backup in the input */
+           ungetNextChar();
+           save = FALSE;
+           currentToken = LT;
+         }
+         break;
+       case INGT:
+         state = DONE;
+         if (c == '=')
+             currentToken = GE;
+         else
+         { /* backup in the input */
+           ungetNextChar();
+           save = FALSE;
+           currentToken = GT;
+         }
+         break;
+       case INOVER:
+         state = DONE;
+         save = FALSE;
+         if (c == '*')
+             state = INCOMMENT_;
+         else
+         { /* backup in the input */
+           ungetNextChar();
+           currentToken = OVER;
+         }
+         break;
+       case INCOMMENT_:
          save = FALSE;
          if (c == EOF)
          { state = DONE;
            currentToken = ENDFILE;
          }
-         else if (c == '}') state = START;
+         else if (c == '*')
+         { c = getNextChar();
+           if (c == '/') state = START;
+           else ungetNextChar(); // backup in the input
+         }
          break;
        case INNUM:
          if (!isdigit(c))
