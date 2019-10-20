@@ -11,7 +11,7 @@
 
 /* states in scanner DFA */
 typedef enum
-   { START,INASSIGN,INCOMMENT,INNUM,INID,DONE }
+   { START,INEQ,INCOMMENT,INNUM,INID,DONE,INLT,INGT,INNE,INOVER,INCOMMENT_ }
    StateType;
 
 /* lexeme of identifier or reserved word */
@@ -56,9 +56,9 @@ static struct
     { char* str;
       TokenType tok;
     } reservedWords[MAXRESERVED]
-   = {{"if",IF},{"then",THEN},{"else",ELSE},{"end",END},
-      {"repeat",REPEAT},{"until",UNTIL},{"read",READ},
-      {"write",WRITE}};
+    = {{"if",IF},{"else",ELSE},{"while",WHILE},{"return",RETURN},{"int",INT},{"void",VOID},
+       /* discarded */ {"then",THEN},{"end",END},{"repeat",REPEAT},{"until",UNTIL},{"read",READ},{"write",WRITE}
+      };
 
 /* lookup an identifier to see if it is a reserved word */
 /* uses linear search */
@@ -94,8 +94,6 @@ TokenType getToken(void)
            state = INNUM;
          else if (isalpha(c))
            state = INID;
-         else if (c == ':')
-           state = INASSIGN;
          else if ((c == ' ') || (c == '\t') || (c == '\n'))
            save = FALSE;
          else if (c == '{')
@@ -124,14 +122,23 @@ TokenType getToken(void)
              case '*':
                currentToken = TIMES;
                break;
-             case '/':
-               currentToken = OVER;
-               break;
              case '(':
                currentToken = LPAREN;
                break;
              case ')':
                currentToken = RPAREN;
+               break;
+             case '{':
+               currentToken = LCURLY;
+               break;
+             case '}':
+               currentToken = RCURLY;
+               break;
+             case '[':
+               currentToken = LBRACE;
+               break;
+             case ']':
+               currentToken = RBRACE;
                break;
              case ';':
                currentToken = SEMI;
@@ -149,17 +156,6 @@ TokenType getToken(void)
            currentToken = ENDFILE;
          }
          else if (c == '}') state = START;
-         break;
-       case INASSIGN:
-         state = DONE;
-         if (c == '=')
-           currentToken = ASSIGN;
-         else
-         { /* backup in the input */
-           ungetNextChar();
-           save = FALSE;
-           currentToken = ERROR;
-         }
          break;
        case INNUM:
          if (!isdigit(c))
