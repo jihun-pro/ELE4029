@@ -9,9 +9,18 @@ CC = gcc
 CFLAGS = 
 
 OBJS = main.o util.o scan.o parse.o symtab.o analyze.o code.o cgen.o
+OBJS_FLEX = main.o util.o globals.h lex.yy.o
 
-tiny: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o tiny
+#by flex
+cminus_flex: $(OBJS_FLEX)
+	$(CC) $(CFLAGS) main.o util.o lex.yy.o -o cminus_flex -lfl
+
+lex.yy.o: cminus.l scan.h util.h globals.h
+	flex cminus.l
+	$(CC) $(CFLAGS) -c lex.yy.c -lfl
+
+cminus: $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o cminus
 
 main.o: main.c globals.h util.h scan.h parse.h analyze.h cgen.h
 	$(CC) $(CFLAGS) -c main.c
@@ -38,12 +47,13 @@ cgen.o: cgen.c globals.h symtab.h code.h cgen.h
 	$(CC) $(CFLAGS) -c cgen.c
 
 clean:
-	-rm tiny
+	-rm cminus
 	-rm tm
 	-rm $(OBJS)
+	-rm lex.yy.c
+	-rm lex.yy.o
 
 tm: tm.c
 	$(CC) $(CFLAGS) tm.c -o tm
 
-all: tiny tm
-
+all: cminus tm
