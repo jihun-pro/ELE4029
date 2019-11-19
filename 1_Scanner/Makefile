@@ -13,11 +13,11 @@ OBJS_FLEX = main.o util.o globals.h lex.yy.o
 
 #by flex
 cminus_flex: $(OBJS_FLEX)
-	$(CC) $(CFLAGS) main.o util.o lex.yy.o -o cminus_flex -lfl
+	$(CC) $(CFLAGS) main.o util.o lex.yy.o -o cminus_flex -ll
 
 lex.yy.o: cminus.l scan.h util.h globals.h
 	flex cminus.l
-	$(CC) $(CFLAGS) -c lex.yy.c -lfl
+	$(CC) $(CFLAGS) -c lex.yy.c -ll
 
 cminus: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o cminus
@@ -52,6 +52,7 @@ clean:
 	-rm $(OBJS)
 	-rm lex.yy.c
 	-rm lex.yy.o
+	-rm cminus_flex
 
 tm: tm.c
 	$(CC) $(CFLAGS) tm.c -o tm
