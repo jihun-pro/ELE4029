@@ -1,21 +1,19 @@
 /****************************************************/
 /* File: main.c                                     */
-/* Main program for TINY compiler                   */
-/* Compiler Construction: Principles and Practice   */
-/* Kenneth C. Louden                                */
+/* Main program for C-minus compiler                 */
 /****************************************************/
 
 #include "globals.h"
 
 /* set NO_PARSE to TRUE to get a scanner-only compiler */
-#define NO_PARSE TRUE
+#define NO_PARSE FALSE
 /* set NO_ANALYZE to TRUE to get a parser-only compiler */
-#define NO_ANALYZE FALSE
+#define NO_ANALYZE TRUE
 
 /* set NO_CODE to TRUE to get a compiler that does not
  * generate code
  */
-#define NO_CODE FALSE
+#define NO_CODE TRUE
 
 #include "util.h"
 #if NO_PARSE
@@ -54,14 +52,14 @@ main( int argc, char * argv[] )
     }
   strcpy(pgm,argv[1]) ;
   if (strchr (pgm, '.') == NULL)
-     strcat(pgm,".tny");
+     strcat(pgm,".cm");
   source = fopen(pgm,"r");
   if (source==NULL)
   { fprintf(stderr,"File %s not found\n",pgm);
     exit(1);
   }
   listing = stdout; /* send listing to screen */
-  fprintf(listing,"\nTINY COMPILATION: %s\n",pgm);
+  fprintf(listing,"\nC-MINUS COMPILATION: %s\n",pgm);
 #if NO_PARSE
   while (getToken()!=ENDFILE);
 #else
