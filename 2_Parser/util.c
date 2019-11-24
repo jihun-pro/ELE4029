@@ -192,7 +192,7 @@ void printTree( TreeNode * tree )
         case VarK:
           break;
         case FunK:
-          fprintf(listing, "Function declaration, name : %s", tree->attr.name);
+          fprintf(listing, "Function declaration, name : %s\n", tree->attr.name);
           break;
         case ArrVarK:
           break;
