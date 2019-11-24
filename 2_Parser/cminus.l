@@ -23,17 +23,11 @@ whitespace  [ \t]+
 %%
 
 "if"            {return IF;}
-"then"          {return THEN;}
 "else"          {return ELSE;}
 "while"         {return WHILE;}
 "return"        {return RETURN;}
 "int"           {return INT;}
 "void"          {return VOID;}
-"end"           {return END;}
-"repeat"        {return REPEAT;}
-"until"         {return UNTIL;}
-"read"          {return READ;}
-"write"         {return WRITE;}
 "="             {return ASSIGN;}
 "=="            {return EQ;}
 "!="            {return NE;}
