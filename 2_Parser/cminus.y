@@ -11,6 +11,8 @@
 static char * savedName; /* for use in assignments */
 static int savedLineNo;  /* ditto */
 static TreeNode * savedTree; /* stores syntax tree for later return */
+int yyerror(char * message);
+static int yylex(void);
 
 %}
 
@@ -22,45 +24,50 @@ static TreeNode * savedTree; /* stores syntax tree for later return */
 
 %%
 
-program			: declaration_list
-				{ savedTree = $1; }
+program                 : declaration_list { savedTree = $1; }
+                        ;
+declaration_list        : declaration declaration_list {
+                                  YYSTYPE t = $1;
+                                  if (t != NULL) {
+                                    while (t->sibling != NULL)
+                                      t = t->sibling;
+                                    t->sibling = $2;
+                                    $$ = $1;
+                                  } else $$ = $2;
+                                }
+                        | declaration { $$ = $1; }
+                        ;
+declaration             : var_declaration { $$ = $1; }
+                        | fun_declaration { $$ = $1; }
 			;
-declaration_list	: declaration declaration_list
-				{ YYSTYPE t = $2;
-				  if (t != NULL) {
-				    while (t->sibling != NULL)
-				      t = t->sibling;
-				    t->sibling = $1;
-				    $$ = $2;
-				  } else $$ = $1;
-				}
-			| declaration { $$ = $1; }
-			;
-declaration		: var_declaration
-				{
-
-				}
-			| fun_declaration
-				{
-
-				}
-			;
-var_declaration		: type_specifier ID SEMI
-			| type_specifier ID LBRACE NUM RBRACE SEMI
+identifier              : ID { savedName = copyString(tokenString); savedLineNo = lineno; }
+                        ;
+var_declaration		: type_specifier identifier SEMI
+			| type_specifier identifier LBRACE NUM RBRACE SEMI
 			;
 type_specifier		: INT
 			| VOID
 			;
-fun_declaration		: type_specifier ID LPAREN params RPAREN compound_stmt
-			;
+fun_declaration         : type_specifier identifier {
+                                  $$ = newDeclNode(FunK);
+                                  $$->lineno = lineno;
+                                  $$->attr.name = savedName;
+                                }
+                        LPAREN params RPAREN compound_stmt {
+                                  $$ = $3;
+                                  $$->child[0] = $1;
+                                  $$->child[1] = $5;
+                                  $$->child[2] = $7;
+                                }
+                        ;
 params			: param_list
 			| VOID
 			;
 param_list		: param_list COMMA param
 			| param
 			;
-param			: type_specifier ID
-			| type_specifier ID LBRACE RBRACE
+param			: type_specifier identifier
+			| type_specifier identifier LBRACE RBRACE
 			;
 compound_stmt		: LCURLY local_declarations statement_list RCURLY
 			;
@@ -90,8 +97,8 @@ return_stmt		: RETURN SEMI
 expression		: var ASSIGN expression
 			| simple_expression
 			;
-var			: ID
-			| ID LBRACE expression RBRACE
+var			: identifier
+			| identifier LBRACE expression RBRACE
 			;
 simple_expression	: additive_expression relop additive_expression
 			| additive_expression
@@ -120,7 +127,7 @@ factor			: LPAREN expression RPAREN
 			| call
 			| NUM
 			;
-call			: ID LPAREN args RPAREN
+call			: identifier LPAREN args RPAREN
 			;
 args			: arg_list
 			|
